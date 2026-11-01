@@ -76,9 +76,10 @@ details p{margin:8px 0 0}
 
 <script>
 /* ===== SET THIS after deploying the Apps Script web app. Leave '' for preview mode. ===== */
-const API_URL = 'https://script.google.com/macros/s/AKfycbw7co8mXuQ5y4Ast2K-BRxXvc4jbkk-hUTKAIzZHGqcO7ihvsBC2z3rpI8DQRs4PLG2/exec';
+const API_URL = '';
+const API = API_URL.trim().split('?')[0]; // tolerates stray spaces or a pasted ?action=config
 
-/* Preview data (used only when API_URL is empty). Replace nothing here; edit the Sheet instead. */
+/* Preview data (used only when API is empty). Replace nothing here; edit the Sheet instead. */
 const DEMO_CFG = {
   business:{name:'Your Business Name',tagline:'Natural wellness products',logo:'',accent:'#2d6a4f',
     disclaimer:'These products are not intended to diagnose, treat, cure or prevent any disease. Consult a qualified health professional before use.',whatsapp:'260970000000'},
@@ -105,14 +106,14 @@ function h(tag, attrs, ...kids){
     else if (k.slice(0,2) === 'on') e.addEventListener(k.slice(2), v);
     else e.setAttribute(k, v === true ? '' : v);
   }
-  kids.flat().forEach(c => { if (c != null && c !== false) e.append(c); });
+  kids.flat(Infinity).forEach(c => { if (c != null && c !== false) e.append(c); });
   return e;
 }
 const money = (n, cur) => cur + ' ' + Number(n).toLocaleString('en-US', {maximumFractionDigits:2});
 const cInfo = () => S.cfg.countries.find(c => c.name === S.country);
 
 async function api(body){
-  if (!API_URL){ await new Promise(r => setTimeout(r, 600));
+  if (!API){ await new Promise(r => setTimeout(r, 600));
     const code = (body.type === 'buy' ? 'DEMO-ORD-' : 'DEMO-ENQ-') + String(Math.floor(Math.random()*900)+100);
     const wa = 'https://wa.me/' + S.cfg.business.whatsapp + '?text=' + encodeURIComponent('Hello, this is a preview message ' + code);
     if (body.type === 'learn') return {ok:true, code, waLink:wa};
@@ -120,7 +121,7 @@ async function api(body){
     return {ok:true, code, subtotal:sub, shipping:c.shipping, total:sub+c.shipping, currency:c.currency,
       paymentInstructions:'Preview mode: your real payment instructions will appear here.', message:'Thank you! Your order has been received.', waLink:wa};
   }
-  const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)});
+  const r = await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)});
   return r.json();
 }
 
@@ -135,7 +136,7 @@ function go(view){ S.view = view; S.err = ''; S.busy = false; render(); window.s
 function header(){
   const b = S.cfg.business;
   return [
-    !API_URL && h('div',{class:'banner'},'Preview mode: showing sample data. Orders are not saved.'),
+    !API && h('div',{class:'banner'},'Preview mode: showing sample data. Orders are not saved.'),
     h('div',{class:'brand'}, b.logo && h('img',{src:b.logo,alt:''}), h('h1',null,b.name)),
     h('p',{class:'tag'}, b.tagline)
   ];
@@ -275,15 +276,25 @@ function render(){
 }
 
 async function init(){
+  let step = 'start';
   try{
-    if (API_URL){ const r = await fetch(API_URL + '?action=config'); const j = await r.json(); if (!j.ok) throw 0; S.cfg = j.config; }
-    else S.cfg = DEMO_CFG;
+    if (API){
+      step = 'network request (blocked, offline, or the web app is not public)';
+      const r = await fetch(API + '?action=config');
+      step = 'reading reply, HTTP ' + r.status;
+      const t = await r.text();
+      step = 'reply was not data. It began: ' + t.slice(0,60);
+      const j = JSON.parse(t);
+      if (!j.ok) throw new Error('Backend said: ' + (j.error || 'ok:false'));
+      S.cfg = j.config;
+    } else S.cfg = DEMO_CFG;
+    step = 'drawing the page';
+    document.documentElement.style.setProperty('--accent', S.cfg.business.accent || '#2d6a4f');
+    document.title = S.cfg.business.name;
+    render();
   }catch(e){
-    app.textContent = 'This page could not load. Please check your connection and refresh.'; return;
+    app.textContent = 'This page could not load. Failed at: ' + step + (e && e.message ? ' | ' + e.message : '');
   }
-  document.documentElement.style.setProperty('--accent', S.cfg.business.accent || '#2d6a4f');
-  document.title = S.cfg.business.name;
-  render();
 }
 init();
 </script>
