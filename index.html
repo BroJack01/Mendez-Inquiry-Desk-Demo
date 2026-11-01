@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order or ask a question</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#2d6a4f; --ink:#1d2822; --muted:#5d6b63; --bg:#f5f7f3; --card:#ffffff;
+  --line:#d9e0d8; --warn:#b3261e; --r:14px;
+  --serif:'Young Serif',Georgia,'Times New Roman',serif;
+  --sans:'Instrument Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--ink:#e8efe9;--muted:#a3b0a7;--bg:#121a15;--card:#1b261f;--line:#2e3d33;--warn:#ff8a80}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans);-webkit-text-size-adjust:100%}
+main{max-width:560px;margin:0 auto;padding:20px 18px 120px}
+h1,h2{font-family:var(--serif);font-weight:400;line-height:1.15;margin:0}
+h1{font-size:2.1rem}
+h2{font-size:1.55rem;margin-bottom:6px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.brand{display:flex;gap:12px;align-items:center;margin:6px 0 4px}
+.brand img{width:52px;height:52px;border-radius:12px;object-fit:cover}
+.tag{margin:6px 0 26px;color:var(--muted)}
+.banner{background:#fff3a3;color:#3a3200;border-radius:10px;padding:8px 12px;font-size:.85rem;margin-bottom:14px}
+button,select,input,textarea{font:inherit;color:inherit}
+.tile{display:block;width:100%;text-align:left;border-radius:var(--r);padding:22px 20px;margin-bottom:14px;cursor:pointer;border:2px solid var(--accent)}
+.tile strong{display:block;font-family:var(--serif);font-weight:400;font-size:1.45rem;margin-bottom:4px}
+.tile span{font-size:.95rem;opacity:.9}
+.tile.solid{background:var(--accent);color:#fff}
+.tile.line{background:transparent;color:var(--ink)}
+.back{background:none;border:0;color:var(--accent);padding:8px 0;margin-bottom:8px;cursor:pointer;font-weight:600}
+label{display:block;font-weight:600;font-size:.92rem;margin:16px 0 6px}
+input,select,textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
+textarea{min-height:84px;resize:vertical}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:10px}
+.prod h3{margin:0;font-size:1.02rem}
+.prod .meta{font-size:.85rem;color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+.price{font-weight:600}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-size:1.3rem;cursor:pointer}
+.qty button:disabled{opacity:.35;cursor:default}
+.qty output{min-width:1.5ch;text-align:center;font-weight:600}
+.sum{margin-top:18px;border-top:2px solid var(--ink);padding-top:10px}
+.sum div{display:flex;justify-content:space-between;padding:3px 0}
+.sum .tot{font-weight:600;font-size:1.15rem}
+.cta{display:block;width:100%;text-align:center;text-decoration:none;background:var(--accent);color:#fff;border:0;border-radius:var(--r);padding:16px;font-weight:600;font-size:1.05rem;margin-top:20px;cursor:pointer}
+.cta:disabled{opacity:.6}
+.cta.alt{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.err{color:var(--warn);font-weight:500;margin-top:12px;min-height:1.2em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--accent);background:transparent;color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);color:#fff}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:8px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0 0}
+.code{font-family:var(--serif);font-size:2.2rem;margin:6px 0 2px;letter-spacing:.02em}
+.box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:14px;white-space:pre-line}
+.talk{margin-top:26px;padding-top:18px;border-top:1px dashed var(--line)}
+.fine{font-size:.8rem;color:var(--muted);margin-top:32px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 18px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar div{max-width:560px;margin:0 auto;display:flex;justify-content:space-between;font-weight:600}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+
+<script>
+/* ===== SET THIS after deploying the Apps Script web app. Leave '' for preview mode. ===== */
+const API_URL = '';
+
+/* Preview data (used only when API_URL is empty). Replace nothing here; edit the Sheet instead. */
+const DEMO_CFG = {
+  business:{name:'Your Business Name',tagline:'Natural wellness products',logo:'',accent:'#2d6a4f',
+    disclaimer:'These products are not intended to diagnose, treat, cure or prevent any disease. Consult a qualified health professional before use.',whatsapp:'260970000000'},
+  countries:[{name:'Zambia',currency:'ZMW',shipping:50},{name:'South Africa',currency:'ZAR',shipping:90},{name:'Kenya',currency:'KES',shipping:600},{name:'Nigeria',currency:'NGN',shipping:6000}],
+  products:[
+    {id:'P001',name:'SAMPLE Herbal Powder A',category:'Powders',form:'Powder',description:'Sample description taken from the seller\u2019s own posts.',howToUse:'Sample usage directions.',image:'',prices:{ZMW:250,ZAR:250,KES:3000,NGN:30000}},
+    {id:'P002',name:'SAMPLE Herbal Powder B',category:'Powders',form:'Powder',description:'Sample description taken from the seller\u2019s own posts.',howToUse:'Sample usage directions.',image:'',prices:{ZMW:300,ZAR:300,KES:3500,NGN:36000}},
+    {id:'P003',name:'SAMPLE Herbal Capsules C',category:'Capsules',form:'Capsules',description:'Sample description taken from the seller\u2019s own posts.',howToUse:'Sample usage directions.',image:'',prices:{ZMW:350,ZAR:350,KES:4200,NGN:42000}}],
+  faqs:[
+    {productId:'ALL',q:'How do I pay?',a:'After you place your order you will see payment instructions for your country.'},
+    {productId:'ALL',q:'How long does delivery take?',a:'We ship by courier. Delivery time depends on your country. Tracking details are shared once payment is confirmed.'},
+    {productId:'P001',q:'How do I use this product?',a:'Follow the usage directions on the product label.'}]
+};
+
+const S = { cfg:null, view:'home', country:'', cart:{}, name:'', phone:'', note:'', pid:'', talk:false, msg:'', busy:false, err:'', result:null };
+const app = document.getElementById('app');
+
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const k in (attrs||{})){
+    const v = attrs[k];
+    if (v === false || v == null) continue;
+    if (k === 'class') e.className = v;
+    else if (k.slice(0,2) === 'on') e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  kids.flat().forEach(c => { if (c != null && c !== false) e.append(c); });
+  return e;
+}
+const money = (n, cur) => cur + ' ' + Number(n).toLocaleString('en-US', {maximumFractionDigits:2});
+const cInfo = () => S.cfg.countries.find(c => c.name === S.country);
+
+async function api(body){
+  if (!API_URL){ await new Promise(r => setTimeout(r, 600));
+    const code = (body.type === 'buy' ? 'DEMO-ORD-' : 'DEMO-ENQ-') + String(Math.floor(Math.random()*900)+100);
+    const wa = 'https://wa.me/' + S.cfg.business.whatsapp + '?text=' + encodeURIComponent('Hello, this is a preview message ' + code);
+    if (body.type === 'learn') return {ok:true, code, waLink:wa};
+    const c = cInfo(), sub = cartLines().reduce((t,l)=>t+l.line,0);
+    return {ok:true, code, subtotal:sub, shipping:c.shipping, total:sub+c.shipping, currency:c.currency,
+      paymentInstructions:'Preview mode: your real payment instructions will appear here.', message:'Thank you! Your order has been received.', waLink:wa};
+  }
+  const r = await fetch(API_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)});
+  return r.json();
+}
+
+function cartLines(){
+  const c = cInfo(); if (!c) return [];
+  return S.cfg.products.filter(p => S.cart[p.id] > 0 && typeof p.prices[c.currency] === 'number')
+    .map(p => ({p, qty:S.cart[p.id], line:p.prices[c.currency] * S.cart[p.id]}));
+}
+
+function go(view){ S.view = view; S.err = ''; S.busy = false; render(); window.scrollTo(0,0); }
+
+function header(){
+  const b = S.cfg.business;
+  return [
+    !API_URL && h('div',{class:'banner'},'Preview mode: showing sample data. Orders are not saved.'),
+    h('div',{class:'brand'}, b.logo && h('img',{src:b.logo,alt:''}), h('h1',null,b.name)),
+    h('p',{class:'tag'}, b.tagline)
+  ];
+}
+const back = () => h('button',{class:'back',onclick:()=>go('home')},'\u2190 Back');
+const fine = () => h('p',{class:'fine'}, S.cfg.business.disclaimer);
+
+function countrySelect(required){
+  return [h('label',{for:'country'}, required ? 'Where should we deliver?' : 'Your country (optional)'),
+    h('select',{id:'country',onchange:e=>{S.country=e.target.value;render();}},
+      h('option',{value:''}, required ? 'Choose your country' : 'Choose country'),
+      S.cfg.countries.map(c => h('option',{value:c.name,selected:c.name===S.country}, c.name)))];
+}
+
+function field(id, label, key, type, extra){
+  const el = type === 'textarea' ? h('textarea',{id}) : h('input',{id,type:type||'text',...(extra||{})});
+  el.value = S[key];
+  el.addEventListener('input', e => { S[key] = e.target.value; });
+  return [h('label',{for:id}, label), el];
+}
+
+/* ---------------- Views ---------------- */
+function home(){
+  return [header(),
+    h('button',{class:'tile solid',onclick:()=>go('buy')}, h('strong',null,'I want to buy'), h('span',null,'Choose your products and get an order number right away.')),
+    h('button',{class:'tile line',onclick:()=>go('learn')}, h('strong',null,'I want to learn more'), h('span',null,'See what each product is, how it is used, and common questions.')),
+    fine()];
+}
+
+function buy(){
+  const c = cInfo(), lines = cartLines();
+  const sub = lines.reduce((t,l)=>t+l.line,0), total = c ? sub + c.shipping : 0;
+  const out = [back(), h('h2',null,'Place an order'), h('p',{class:'muted'},'Prices show in your own currency once you choose a country.'), countrySelect(true)];
+
+  if (c){
+    out.push(h('div',null, S.cfg.products.map(p => {
+      const price = p.prices[c.currency], q = S.cart[p.id] || 0, ok = typeof price === 'number';
+      return h('div',{class:'prod'},
+        h('h3',null,p.name), h('div',{class:'meta'},[p.category,p.form].filter(Boolean).join(', ')),
+        p.description && h('p',{style:'margin-top:6px'},p.description),
+        h('div',{class:'row'},
+          h('span',{class:'price'}, ok ? money(price,c.currency) : 'Price on request'),
+          ok && h('div',{class:'qty'},
+            h('button',{type:'button','aria-label':'Remove one '+p.name,disabled:q<1,onclick:()=>{S.cart[p.id]=Math.max(0,q-1);render();}},'\u2212'),
+            h('output',null,String(q)),
+            h('button',{type:'button','aria-label':'Add one '+p.name,onclick:()=>{S.cart[p.id]=Math.min(99,q+1);render();}},'+'))));
+    })));
+    if (lines.length) out.push(h('div',{class:'sum'},
+      h('div',null,h('span',null,'Products'),h('span',null,money(sub,c.currency))),
+      h('div',null,h('span',null,'Delivery'),h('span',null,money(c.shipping,c.currency))),
+      h('div',{class:'tot'},h('span',null,'Total'),h('span',null,money(total,c.currency)))));
+    out.push(field('name','Your name','name','text',{autocomplete:'name'}),
+             field('phone','Your WhatsApp number','phone','tel',{autocomplete:'tel',placeholder:'e.g. +260 97 000 0000'}),
+             field('note','Anything we should know? (optional)','note','textarea'),
+             h('div',{class:'err',role:'alert'},S.err),
+             h('button',{class:'cta',disabled:S.busy,onclick:submitBuy}, S.busy ? 'Sending\u2026' : 'Place order'));
+  }
+  out.push(fine());
+  return out;
+}
+
+async function submitBuy(){
+  const lines = cartLines();
+  if (!lines.length) return fail('Add at least one product.');
+  if (!S.name.trim()) return fail('Enter your name.');
+  if (S.phone.replace(/\D/g,'').length < 7) return fail('Enter a WhatsApp number with country code.');
+  S.busy = true; S.err = ''; render();
+  try{
+    const r = await api({type:'buy', name:S.name, phone:S.phone, country:S.country, note:S.note,
+      items:lines.map(l => ({id:l.p.id, qty:l.qty}))});
+    if (!r.ok) throw new Error(r.error);
+    S.result = r; S.cart = {}; go('done');
+  }catch(e){ S.busy = false; S.err = (e.message || 'Something went wrong.') + ' Check your connection and try again.'; render(); }
+}
+function fail(m){ S.err = m; render(); }
+
+function done(){
+  const r = S.result;
+  return [header(), h('h2',null,'Order received'), h('p',{class:'muted'},r.message || ''),
+    h('div',{class:'code'}, r.code),
+    r.total != null && h('p',null,'Total to pay: ', h('strong',null,money(r.total, r.currency))),
+    r.paymentInstructions && h('div',{class:'box'}, h('strong',null,'How to pay\n'), r.paymentInstructions),
+    h('p',{style:'margin-top:14px'},'Tap below and send the message, so we can confirm your payment and ship.'),
+    h('a',{class:'cta',href:r.waLink,target:'_blank',rel:'noopener'},'Send on WhatsApp'),
+    h('button',{class:'cta alt',onclick:()=>go('home')},'Back to start'), fine()];
+}
+
+function learn(){
+  const p = S.cfg.products.find(x => x.id === S.pid);
+  const out = [back(), h('h2',null,'Learn about our products'), h('p',{class:'muted'},'Choose a product to see what it is and how it is used.'),
+    h('div',{class:'chips'}, S.cfg.products.map(x => h('button',{class:'chip','aria-pressed':String(x.id===S.pid),onclick:()=>{S.pid=x.id;render();}},x.name)))];
+  if (p){
+    out.push(h('div',{class:'prod'}, h('h3',null,p.name), h('div',{class:'meta'},[p.category,p.form].filter(Boolean).join(', ')),
+      p.description && h('p',{style:'margin-top:8px'},p.description),
+      p.howToUse && [h('strong',null,'How to use'), h('p',null,p.howToUse)]));
+  }
+  const faqs = S.cfg.faqs.filter(f => f.productId === 'ALL' || f.productId === S.pid);
+  if (faqs.length){
+    out.push(h('h2',{style:'font-size:1.2rem;margin-top:22px'},'Common questions'));
+    faqs.forEach(f => out.push(h('details',null,h('summary',null,f.q),h('p',null,f.a))));
+  }
+  out.push(h('div',{class:'talk'}, h('h2',{style:'font-size:1.2rem'},'Still want to talk to someone?'),
+    !S.talk
+      ? h('button',{class:'cta alt',onclick:()=>{S.talk=true;render();}},'Ask us on WhatsApp')
+      : [countrySelect(false),
+         field('name','Your name (optional)','name','text',{autocomplete:'name'}),
+         field('phone','Your WhatsApp number (optional)','phone','tel',{autocomplete:'tel'}),
+         field('msg','Your question','msg','textarea'),
+         h('div',{class:'err',role:'alert'},S.err),
+         h('button',{class:'cta',disabled:S.busy,onclick:submitLearn},S.busy?'Sending\u2026':'Send my question')]));
+  out.push(fine());
+  return out;
+}
+
+async function submitLearn(){
+  if (!S.msg.trim()) return fail('Type your question first.');
+  S.busy = true; S.err = ''; render();
+  try{
+    const r = await api({type:'learn', name:S.name, phone:S.phone, country:S.country, productId:S.pid, message:S.msg});
+    if (!r.ok) throw new Error(r.error);
+    S.result = {code:r.code, waLink:r.waLink, message:'Your question is logged. Send it on WhatsApp so we can reply.'};
+    S.msg = ''; S.talk = false; go('done');
+  }catch(e){
+    // fallback: never lose the customer, open WhatsApp directly
+    const b = S.cfg.business;
+    S.result = {code:'', waLink:'https://wa.me/'+String(b.whatsapp).replace(/\D/g,'')+'?text='+encodeURIComponent(S.msg),
+      message:'We could not log your question, but you can still send it on WhatsApp.'};
+    go('done');
+  }
+}
+
+function render(){
+  const focusId = document.activeElement && document.activeElement.id;
+  const caret = document.activeElement && document.activeElement.selectionStart;
+  app.replaceChildren(...({home,buy,done,learn}[S.view])().flat(Infinity).filter(Boolean));
+  if (focusId){ const el = document.getElementById(focusId); if (el){ el.focus(); try{ el.setSelectionRange(caret,caret); }catch(_){} } }
+}
+
+async function init(){
+  try{
+    if (API_URL){ const r = await fetch(API_URL + '?action=config'); const j = await r.json(); if (!j.ok) throw 0; S.cfg = j.config; }
+    else S.cfg = DEMO_CFG;
+  }catch(e){
+    app.textContent = 'This page could not load. Please check your connection and refresh.'; return;
+  }
+  document.documentElement.style.setProperty('--accent', S.cfg.business.accent || '#2d6a4f');
+  document.title = S.cfg.business.name;
+  render();
+}
+init();
+</script>
+</body>
+</html>
